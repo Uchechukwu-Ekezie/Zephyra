@@ -18,13 +18,16 @@ import {
   WifiOff,
   MessageCircle,
   Users,
-  RefreshCw
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useXMTP } from "@/contexts/xmtp-context";
 import { usePrivy } from "@privy-io/react-auth";
 import { useToast } from "@/hooks/use-toast";
-import { getDomainAvatarUrl, getConversationAvatarUrl } from "@/lib/avatar-utils";
+import {
+  getDomainAvatarUrl,
+  getConversationAvatarUrl,
+} from "@/lib/avatar-utils";
 import type { Dm } from "@xmtp/browser-sdk";
 
 // Mock data for XMTP demonstration
@@ -32,7 +35,8 @@ const mockChats = [
   {
     id: "1",
     address: "0xC517cEe1ECb196fe94582D0208f9D3BEE2f563c2",
-    lastMessage: "Hey, I'm interested in the monoplay01.ai domain. Is it still available?",
+    lastMessage:
+      "Hey, I'm interested in the monoplay01.ai domain. Is it still available?",
     timestamp: "2 min ago",
     unreadCount: 2,
     isOnline: true,
@@ -43,23 +47,23 @@ const mockChats = [
         text: "Hey, I'm interested in the monoplay01.ai domain. Is it still available?",
         sender: "user",
         timestamp: "2:30 PM",
-        status: "delivered"
+        status: "delivered",
       },
       {
         id: "2",
         text: "Yes, it's still available! The current bid is 0.35 ETH. Would you like to make an offer?",
         sender: "me",
         timestamp: "2:31 PM",
-        status: "read"
+        status: "read",
       },
       {
         id: "3",
         text: "What's your asking price? I'm looking to close this quickly.",
         sender: "user",
         timestamp: "2:32 PM",
-        status: "delivered"
-      }
-    ]
+        status: "delivered",
+      },
+    ],
   },
   {
     id: "2",
@@ -75,37 +79,37 @@ const mockChats = [
         text: "Hi, I saw your listing for crypto.io domain. Is it negotiable?",
         sender: "user",
         timestamp: "1:45 PM",
-        status: "read"
+        status: "read",
       },
       {
         id: "2",
         text: "Hi! Yes, I'm open to reasonable offers. What's your budget?",
         sender: "me",
         timestamp: "1:46 PM",
-        status: "read"
+        status: "read",
       },
       {
         id: "3",
         text: "I can offer 0.4 ETH. Would that work for you?",
         sender: "user",
         timestamp: "1:47 PM",
-        status: "read"
+        status: "read",
       },
       {
         id: "4",
         text: "That sounds fair. Let's proceed with the transfer.",
         sender: "me",
         timestamp: "1:48 PM",
-        status: "read"
+        status: "read",
       },
       {
         id: "5",
         text: "Thanks for the domain! The transfer was smooth.",
         sender: "user",
         timestamp: "1:50 PM",
-        status: "read"
-      }
-    ]
+        status: "read",
+      },
+    ],
   },
   {
     id: "3",
@@ -121,24 +125,24 @@ const mockChats = [
         text: "Hi, I'm interested in your domain collection. Can we discuss pricing?",
         sender: "user",
         timestamp: "11:30 AM",
-        status: "read"
+        status: "read",
       },
       {
         id: "2",
         text: "Absolutely! I have several domains in the collection. What type are you looking for?",
         sender: "me",
         timestamp: "11:31 AM",
-        status: "read"
+        status: "read",
       },
       {
         id: "3",
         text: "Can we discuss the domain collection pricing?",
         sender: "user",
         timestamp: "11:32 AM",
-        status: "delivered"
-      }
-    ]
-  }
+        status: "delivered",
+      },
+    ],
+  },
 ];
 
 interface ChatInterfaceProps {
@@ -146,8 +150,20 @@ interface ChatInterfaceProps {
   domainName?: string | null;
 }
 
-export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps) {
-  const { client, isLoading, isInitialized, error, canMessage, initializeClient, revokeInstallations, clearLocalData } = useXMTP();
+export function ChatInterface({
+  contactAddress,
+  domainName,
+}: ChatInterfaceProps) {
+  const {
+    client,
+    isLoading,
+    isInitialized,
+    error,
+    canMessage,
+    initializeClient,
+    revokeInstallations,
+    clearLocalData,
+  } = useXMTP();
   const { authenticated, user } = usePrivy();
   const { toast } = useToast();
 
@@ -172,7 +188,7 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
   // Domain_space deduplication utility
   const deduplicateConversations = useCallback((conversations: any[]) => {
     const seen = new Set();
-    return conversations.filter(conv => {
+    return conversations.filter((conv) => {
       if (!conv || !conv.id) return false;
       if (seen.has(conv.id)) return false;
       seen.add(conv.id);
@@ -181,72 +197,78 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
   }, []);
 
   // Domain_space approach - getPeerAddress utility
-  const getPeerAddress = useCallback(async (conversation: Dm) => {
-    try {
-      // Method 1: Try peerInboxId approach (domain_space preferred method)
-      const peerInboxId = await conversation.peerInboxId();
-      if (peerInboxId && client) {
-        const state = await client.preferences.inboxStateFromInboxIds([peerInboxId]);
-        const address = state?.[0]?.identifiers?.[0]?.identifier;
-        if (address && address.startsWith('0x') && address.length === 42) {
+  const getPeerAddress = useCallback(
+    async (conversation: Dm) => {
+      try {
+        // Method 1: Try peerInboxId approach (domain_space preferred method)
+        const peerInboxId = await conversation.peerInboxId();
+        if (peerInboxId && client) {
+          const state = await client.preferences.inboxStateFromInboxIds([
+            peerInboxId,
+          ]);
+          const address = state?.[0]?.identifiers?.[0]?.identifier;
+          if (address && address.startsWith("0x") && address.length === 42) {
+            return address;
+          }
+        }
+      } catch (error) {
+        console.log("peerInboxId method failed, trying members...", error);
+      }
+
+      try {
+        // Method 2: Try members approach as fallback
+        const members = await conversation.members();
+        const address = (members?.[0] as { identifier?: string })?.identifier;
+        if (address && address.startsWith("0x") && address.length === 42) {
           return address;
         }
+      } catch (error) {
+        console.log("members method failed", error);
       }
-    } catch (error) {
-      console.log('peerInboxId method failed, trying members...', error);
-    }
 
-    try {
-      // Method 2: Try members approach as fallback
-      const members = await conversation.members();
-      const address = (members?.[0] as { identifier?: string })?.identifier;
-      if (address && address.startsWith('0x') && address.length === 42) {
-        return address;
-      }
-    } catch (error) {
-      console.log('members method failed', error);
-    }
-
-    return null; // Return null for invalid addresses
-  }, [client]);
+      return null; // Return null for invalid addresses
+    },
+    [client]
+  );
 
   // Load conversations - EXACT domain_space implementation
   const loadConversations = useCallback(async () => {
     if (!client) {
-      console.log('No XMTP client available');
+      console.log("No XMTP client available");
       return;
     }
 
     setIsRefreshing(true);
     try {
-      console.log('🔄 Loading conversations (domain_space approach)...');
+      console.log("🔄 Loading conversations (domain_space approach)...");
 
       // Force sync all conversations and messages like domain_space
       await client.conversations.syncAll();
 
       // Add delay to ensure sync completes like domain_space
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       // Load DMs with BOTH allowed and unknown consent states (CRITICAL for domain_space compatibility)
-      console.log('🔄 Loading DMs with consent states...');
+      console.log("🔄 Loading DMs with consent states...");
       const allConversations = await client.conversations.listDms();
-      console.log('📬 Total conversations loaded:', allConversations.length);
+      console.log("📬 Total conversations loaded:", allConversations.length);
 
       // Filter for DM conversations only, excluding group chats (domain_space approach)
-      const dms = allConversations.filter((conv) =>
-        'peerInboxId' in conv && typeof conv.peerInboxId === 'function'
+      const dms = allConversations.filter(
+        (conv) =>
+          "peerInboxId" in conv && typeof conv.peerInboxId === "function"
       ) as Dm[];
 
-      console.log('💬 DM conversations found:', dms.length);
+      console.log("💬 DM conversations found:", dms.length);
 
       if (dms.length === 0) {
-        console.log('📭 No DM conversations found');
+        console.log("📭 No DM conversations found");
         setConversations([]);
         return;
       }
 
       // Process each DM conversation (domain_space approach)
-      console.log('🔄 Processing DM conversations...');
+      console.log("🔄 Processing DM conversations...");
       const enhancedConversations = await Promise.all(
         dms.map(async (dm, index) => {
           try {
@@ -255,7 +277,9 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
             // Get peer address using domain_space utility
             const peerAddress = await getPeerAddress(dm);
             if (!peerAddress) {
-              console.log(`❌ No valid peer address for DM ${index + 1} - skipping`);
+              console.log(
+                `❌ No valid peer address for DM ${index + 1} - skipping`
+              );
               return null;
             }
 
@@ -267,15 +291,21 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
               const msgs = await dm.messages();
               // Filter for text messages only like domain_space does
               messages = msgs.filter((msg: any) => {
-                const isText = typeof msg.content === "string" &&
-                              msg.content !== "" &&
-                              !msg.content.startsWith("{") && // Filter out JSON system messages
-                              !msg.content.includes("initiatedByInboxId"); // Filter out conversation creation messages
+                const isText =
+                  typeof msg.content === "string" &&
+                  msg.content !== "" &&
+                  !msg.content.startsWith("{") && // Filter out JSON system messages
+                  !msg.content.includes("initiatedByInboxId"); // Filter out conversation creation messages
                 return isText;
               });
-              console.log(`📬 Loaded ${messages.length} text messages for DM ${index + 1}`);
+              console.log(
+                `📬 Loaded ${messages.length} text messages for DM ${index + 1}`
+              );
             } catch (messageError) {
-              console.warn(`❌ Failed to load messages for DM ${index + 1}:`, messageError);
+              console.warn(
+                `❌ Failed to load messages for DM ${index + 1}:`,
+                messageError
+              );
             }
 
             const lastMessage = messages[messages.length - 1];
@@ -285,7 +315,9 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
               address: peerAddress,
               lastMessage: lastMessage?.content || "No messages yet",
               timestamp: lastMessage
-                ? new Date(Number(lastMessage.sentAtNs) / 1_000_000).toLocaleTimeString()
+                ? new Date(
+                    Number(lastMessage.sentAtNs) / 1_000_000
+                  ).toLocaleTimeString()
                 : "Now",
               unreadCount: 0, // Domain_space calculates this differently - we can enhance later
               isOnline: false,
@@ -305,29 +337,48 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
         .filter(Boolean)
         .sort((a, b) => {
           // Sort by most recent first
-          const timeA = a.timestamp !== "Now" ? new Date(a.timestamp).getTime() : Date.now();
-          const timeB = b.timestamp !== "Now" ? new Date(b.timestamp).getTime() : Date.now();
+          const timeA =
+            a.timestamp !== "Now"
+              ? new Date(a.timestamp).getTime()
+              : Date.now();
+          const timeB =
+            b.timestamp !== "Now"
+              ? new Date(b.timestamp).getTime()
+              : Date.now();
           return timeB - timeA;
         });
 
-      console.log('✅ Successfully processed', validConversations.length, 'conversations');
+      console.log(
+        "✅ Successfully processed",
+        validConversations.length,
+        "conversations"
+      );
 
       // Apply deduplication like domain_space
-      const deduplicatedConversations = deduplicateConversations(validConversations);
-      console.log('🔄 After deduplication:', deduplicatedConversations.length, 'conversations');
+      const deduplicatedConversations =
+        deduplicateConversations(validConversations);
+      console.log(
+        "🔄 After deduplication:",
+        deduplicatedConversations.length,
+        "conversations"
+      );
 
       setConversations(deduplicatedConversations);
 
       // Auto-select first conversation if none selected
       if (deduplicatedConversations.length > 0 && !selectedConversation) {
         setSelectedConversation(deduplicatedConversations[0]);
-        console.log('🎯 Auto-selected first conversation:', deduplicatedConversations[0].address);
+        console.log(
+          "🎯 Auto-selected first conversation:",
+          deduplicatedConversations[0].address
+        );
       }
     } catch (error) {
-      console.error('Error loading conversations:', error);
+      console.error("Error loading conversations:", error);
       toast({
         title: "Error Loading Conversations",
-        description: "Failed to load your messages. Check console for details and try refreshing.",
+        description:
+          "Failed to load your messages. Check console for details and try refreshing.",
         variant: "destructive",
       });
     } finally {
@@ -341,6 +392,9 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
 
     setIsLoadingMessages(true);
     try {
+      // Sync conversation before loading messages (Domain_Space approach)
+      await selectedConversation.conversation.sync();
+
       const msgs = await selectedConversation.conversation.messages();
 
       const formattedMessages = msgs.map((msg: any) => {
@@ -367,7 +421,9 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
           id: msg.id,
           text: messageText,
           sender: msg.senderAddress === user?.wallet?.address ? "me" : "user",
-          timestamp: new Date(Number(msg.sentAtNs) / 1_000_000).toLocaleTimeString(),
+          timestamp: new Date(
+            Number(msg.sentAtNs) / 1_000_000
+          ).toLocaleTimeString(),
           status: "delivered", // TODO: Implement message status
           senderAddress: msg.senderAddress,
         };
@@ -375,7 +431,7 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
 
       setMessages(formattedMessages);
     } catch (error) {
-      console.error('Error loading messages:', error);
+      console.error("Error loading messages:", error);
       toast({
         title: "Error Loading Messages",
         description: "Failed to load messages for this conversation.",
@@ -390,77 +446,64 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
   const handleSendMessage = useCallback(async () => {
     if (!messageInput.trim() || !selectedConversation?.conversation) return;
 
+    const messageToSend = messageInput.trim();
+
     try {
-      console.log('Sending message:', messageInput);
-      console.log('Conversation type:', selectedConversation.isGroup ? 'group' : 'dm');
+      console.log("Sending message:", messageToSend);
 
-      // Send message through XMTP
-      await selectedConversation.conversation.send(messageInput);
+      // Send message through XMTP (simplified approach like Domain_Space)
+      await selectedConversation.conversation.send(messageToSend);
 
-      // Add message to local state immediately for better UX
-      const newMessage = {
-        id: Date.now().toString(),
-        text: messageInput,
-        sender: "me",
-        timestamp: new Date().toLocaleTimeString(),
-        status: "sent",
-        senderAddress: user?.wallet?.address,
-      };
-
-      setMessages(prev => [...prev, newMessage]);
+      // Clear input immediately after successful send
       setMessageInput("");
 
       // Update conversation's last message
-      setConversations(prev =>
-        prev.map(conv =>
+      setConversations((prev) =>
+        prev.map((conv) =>
           conv.id === selectedConversation.id
             ? {
                 ...conv,
-                lastMessage: messageInput,
+                lastMessage: messageToSend,
                 timestamp: new Date().toLocaleTimeString(),
               }
             : conv
         )
       );
 
-      console.log('Message sent successfully');
-    } catch (error) {
-      console.error('Error sending message:', error);
+      console.log("Message sent successfully");
 
-      let errorMessage = "Failed to send your message. Please try again.";
-      if (error instanceof Error) {
-        if (error.message.includes('network')) {
-          errorMessage = "Network error. Please check your connection.";
-        } else if (error.message.includes('not found')) {
-          errorMessage = "Conversation not found. Please try refreshing.";
-        }
-      }
+      // Message stream will automatically add the new message, no need to reload
+    } catch (error) {
+      console.error("Failed to send message:", error);
 
       toast({
         title: "Error Sending Message",
-        description: errorMessage,
+        description: "Failed to send message. Please try again.",
         variant: "destructive",
       });
     }
-  }, [messageInput, selectedConversation, user?.wallet?.address, toast]);
+  }, [messageInput, selectedConversation, toast, loadMessages]);
 
   // Validate if address can receive messages
-  const validateAddress = useCallback(async (address: string): Promise<boolean> => {
-    if (!client) return false;
+  const validateAddress = useCallback(
+    async (address: string): Promise<boolean> => {
+      if (!client) return false;
 
-    try {
-      const identifier = {
-        identifier: address.toLowerCase(),
-        identifierKind: 'Ethereum' as const
-      };
+      try {
+        const identifier = {
+          identifier: address.toLowerCase(),
+          identifierKind: "Ethereum" as const,
+        };
 
-      const response = await client.canMessage([identifier]);
-      return response.get(address.toLowerCase()) || false;
-    } catch (error) {
-      console.error('Error validating address:', error);
-      return false;
-    }
-  }, [client]);
+        const response = await client.canMessage([identifier]);
+        return response.get(address.toLowerCase()) || false;
+      } catch (error) {
+        console.error("Error validating address:", error);
+        return false;
+      }
+    },
+    [client]
+  );
 
   // Start a new conversation
   const startNewConversation = useCallback(async () => {
@@ -468,7 +511,7 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
 
     setIsStartingNewChat(true);
     try {
-      console.log('Validating address:', newChatAddress);
+      console.log("Validating address:", newChatAddress);
 
       // First, check if the address can receive messages
       const canMessage = await validateAddress(newChatAddress);
@@ -476,18 +519,20 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
       if (!canMessage) {
         toast({
           title: "Address Not Reachable",
-          description: "This address cannot receive XMTP messages. They need to enable XMTP first.",
+          description:
+            "This address cannot receive XMTP messages. They need to enable XMTP first.",
           variant: "destructive",
         });
         return;
       }
 
-      console.log('Address is valid, checking for existing conversation...');
+      console.log("Address is valid, checking for existing conversation...");
 
       // Show validation feedback to user
       toast({
         title: "✅ Address is XMTP-enabled",
-        description: "This address can receive messages. Creating conversation...",
+        description:
+          "This address can receive messages. Creating conversation...",
       });
 
       // Check if conversation already exists
@@ -502,29 +547,16 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
         return;
       }
 
-      console.log('Creating new DM conversation...');
+      console.log("Creating new DM conversation...");
 
-      // Get inbox ID first (domainline approach)
+      // Create identifier (Domain_Space approach)
       const identifier = {
         identifier: newChatAddress.toLowerCase(),
-        identifierKind: 'Ethereum' as const,
+        identifierKind: "Ethereum" as const,
       };
 
-      const inboxId = await client.findInboxIdByIdentifier(identifier);
-
-      if (!inboxId) {
-        toast({
-          title: "Error",
-          description: "Failed to find inbox ID for this address.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      console.log('Found inbox ID:', inboxId);
-
-      // Create a DM conversation using inbox ID
-      const conversation = await client.conversations.newDm(inboxId);
+      // Create a DM conversation using identifier (Domain_Space method)
+      const conversation = await client.conversations.newDmWithIdentifier(identifier);
 
       const newConvo = {
         id: conversation.id,
@@ -538,22 +570,29 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
         memberCount: undefined,
       };
 
-      setConversations(prev => [newConvo, ...prev]);
+      setConversations((prev) => [newConvo, ...prev]);
       setSelectedConversation(newConvo);
       setNewChatAddress("");
 
       toast({
         title: "Conversation Created! 💬",
-        description: `Started messaging with ${newChatAddress.slice(0, 6)}...${newChatAddress.slice(-4)}`,
+        description: `Started messaging with ${newChatAddress.slice(
+          0,
+          6
+        )}...${newChatAddress.slice(-4)}`,
       });
     } catch (error) {
-      console.error('Error starting conversation:', error);
+      console.error("Error starting conversation:", error);
 
       let errorMessage = "Failed to start conversation. Please try again.";
       if (error instanceof Error) {
-        if (error.message.includes('not found') || error.message.includes('invalid')) {
-          errorMessage = "Invalid Ethereum address. Please check and try again.";
-        } else if (error.message.includes('network')) {
+        if (
+          error.message.includes("not found") ||
+          error.message.includes("invalid")
+        ) {
+          errorMessage =
+            "Invalid Ethereum address. Please check and try again.";
+        } else if (error.message.includes("network")) {
           errorMessage = "Network error. Please check your connection.";
         }
       }
@@ -574,13 +613,13 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
 
     setIsCreatingGroup(true);
     try {
-      console.log('Creating group conversation...');
+      console.log("Creating group conversation...");
 
       // Parse member addresses
       const memberAddresses = groupMembers
-        .split(',')
-        .map(addr => addr.trim().toLowerCase())
-        .filter(addr => addr.length > 0);
+        .split(",")
+        .map((addr) => addr.trim().toLowerCase())
+        .filter((addr) => addr.length > 0);
 
       if (memberAddresses.length === 0) {
         toast({
@@ -592,28 +631,30 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
       }
 
       // Validate all member addresses
-      console.log('Validating member addresses:', memberAddresses);
-      const identifiers = memberAddresses.map(addr => ({
+      console.log("Validating member addresses:", memberAddresses);
+      const identifiers = memberAddresses.map((addr) => ({
         identifier: addr,
-        identifierKind: 'Ethereum' as const
+        identifierKind: "Ethereum" as const,
       }));
 
       const canMessageResponse = await client.canMessage(identifiers);
       const unreachableMembers = memberAddresses.filter(
-        addr => !canMessageResponse.get(addr)
+        (addr) => !canMessageResponse.get(addr)
       );
 
       if (unreachableMembers.length > 0) {
         toast({
           title: "Some Members Not Reachable",
-          description: `These addresses cannot receive XMTP messages: ${unreachableMembers.map(addr => addr.slice(0, 6) + '...').join(', ')}`,
+          description: `These addresses cannot receive XMTP messages: ${unreachableMembers
+            .map((addr) => addr.slice(0, 6) + "...")
+            .join(", ")}`,
           variant: "destructive",
         });
         return;
       }
 
       // Get inbox IDs for the members
-      console.log('Getting inbox IDs for members...');
+      console.log("Getting inbox IDs for members...");
       const memberInboxIds = await Promise.all(
         memberAddresses.map(async (addr) => {
           // For now, we'll use the address as inbox ID
@@ -622,20 +663,20 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
         })
       );
 
-      console.log('Creating group with members:', memberInboxIds);
+      console.log("Creating group with members:", memberInboxIds);
 
       // Create the group
-      const group = await client.conversations.newGroup(
-        memberInboxIds,
-        {
-          name: groupName.trim() || `Group Chat`,
-          description: `Group chat created by ${user?.wallet?.address?.slice(0, 6)}...`,
-        }
-      );
+      const group = await client.conversations.newGroup(memberInboxIds, {
+        name: groupName.trim() || `Group Chat`,
+        description: `Group chat created by ${user?.wallet?.address?.slice(
+          0,
+          6
+        )}...`,
+      });
 
       const newConvo = {
         id: group.id,
-        address: `Group: ${groupName || 'Unnamed'}`,
+        address: `Group: ${groupName || "Unnamed"}`,
         lastMessage: "Group chat created",
         timestamp: new Date().toLocaleTimeString(),
         unreadCount: 0,
@@ -645,7 +686,7 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
         memberCount: memberAddresses.length + 1, // +1 for creator
       };
 
-      setConversations(prev => [newConvo, ...prev]);
+      setConversations((prev) => [newConvo, ...prev]);
       setSelectedConversation(newConvo);
       setGroupMembers("");
       setGroupName("");
@@ -655,15 +696,17 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
         description: `Created group with ${memberAddresses.length} member(s)`,
       });
     } catch (error) {
-      console.error('Error creating group:', error);
+      console.error("Error creating group:", error);
 
       let errorMessage = "Failed to create group. Please try again.";
       if (error instanceof Error) {
-        if (error.message.includes('too many')) {
-          errorMessage = "Group size limit exceeded. Maximum 250 members allowed.";
-        } else if (error.message.includes('invalid')) {
-          errorMessage = "Invalid member address. Please check addresses and try again.";
-        } else if (error.message.includes('network')) {
+        if (error.message.includes("too many")) {
+          errorMessage =
+            "Group size limit exceeded. Maximum 250 members allowed.";
+        } else if (error.message.includes("invalid")) {
+          errorMessage =
+            "Invalid member address. Please check addresses and try again.";
+        } else if (error.message.includes("network")) {
           errorMessage = "Network error. Please check your connection.";
         }
       }
@@ -679,42 +722,55 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
   }, [client, groupMembers, groupName, user?.wallet?.address, toast]);
 
   // Conversation helper methods
-  const getConversationById = useCallback(async (conversationId: string) => {
-    if (!client) return null;
-    try {
-      return await client.conversations.getConversationById(conversationId);
-    } catch (error) {
-      console.error('Error getting conversation by ID:', error);
-      return null;
-    }
-  }, [client]);
+  const getConversationById = useCallback(
+    async (conversationId: string) => {
+      if (!client) return null;
+      try {
+        return await client.conversations.getConversationById(conversationId);
+      } catch (error) {
+        console.error("Error getting conversation by ID:", error);
+        return null;
+      }
+    },
+    [client]
+  );
 
-  const getMessageById = useCallback(async (messageId: string) => {
-    if (!client) return null;
-    try {
-      return await client.conversations.getMessageById(messageId);
-    } catch (error) {
-      console.error('Error getting message by ID:', error);
-      return null;
-    }
-  }, [client]);
+  const getMessageById = useCallback(
+    async (messageId: string) => {
+      if (!client) return null;
+      try {
+        return await client.conversations.getMessageById(messageId);
+      } catch (error) {
+        console.error("Error getting message by ID:", error);
+        return null;
+      }
+    },
+    [client]
+  );
 
-  const getDmByInboxId = useCallback(async (peerInboxId: string) => {
-    if (!client) return null;
-    try {
-      return await client.conversations.getDmByInboxId(peerInboxId);
-    } catch (error) {
-      console.error('Error getting DM by inbox ID:', error);
-      return null;
-    }
-  }, [client]);
+  const getDmByInboxId = useCallback(
+    async (peerInboxId: string) => {
+      if (!client) return null;
+      try {
+        return await client.conversations.getDmByInboxId(peerInboxId);
+      } catch (error) {
+        console.error("Error getting DM by inbox ID:", error);
+        return null;
+      }
+    },
+    [client]
+  );
 
   // Find existing conversation with an address
-  const findExistingConversation = useCallback((address: string) => {
-    return conversations.find(conv =>
-      !conv.isGroup && conv.address.toLowerCase() === address.toLowerCase()
-    );
-  }, [conversations]);
+  const findExistingConversation = useCallback(
+    (address: string) => {
+      return conversations.find(
+        (conv) =>
+          !conv.isGroup && conv.address.toLowerCase() === address.toLowerCase()
+      );
+    },
+    [conversations]
+  );
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -732,7 +788,7 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
 
   // Auto-populate contact address from URL params
   useEffect(() => {
-    if (contactAddress && contactAddress.startsWith('0x')) {
+    if (contactAddress && contactAddress.startsWith("0x")) {
       setNewChatAddress(contactAddress);
 
       // If we have a domain name, show a helpful toast
@@ -752,12 +808,66 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
     }
   }, [selectedConversation, loadMessages]);
 
+  // Stream messages for real-time updates (Domain_Space approach)
+  useEffect(() => {
+    if (!selectedConversation?.conversation) return;
+
+    let streamController: { return?: () => void } | null = null;
+
+    const setupMessageStream = async () => {
+      try {
+        streamController = await selectedConversation.conversation.stream({
+          onValue: (message: any) => {
+            if (message && typeof message.content === "string") {
+              setMessages((prev) => {
+                // Check if message already exists
+                const exists = prev.find((m) => m.id === message.id);
+                if (exists) return prev;
+
+                // Add new message
+                return [
+                  ...prev,
+                  {
+                    id: message.id,
+                    text: message.content,
+                    sender:
+                      message.senderAddress === user?.wallet?.address
+                        ? "me"
+                        : "user",
+                    timestamp: new Date(
+                      Number(message.sentAtNs) / 1_000_000
+                    ).toLocaleTimeString(),
+                    status: "delivered",
+                    senderAddress: message.senderAddress,
+                  },
+                ];
+              });
+            }
+          },
+          onError: (error: unknown) => {
+            console.error("Message stream error:", error);
+          },
+        });
+      } catch (error) {
+        console.error("Failed to setup message stream:", error);
+      }
+    };
+
+    setupMessageStream();
+
+    return () => {
+      if (streamController && typeof streamController.return === "function") {
+        streamController.return();
+      }
+    };
+  }, [selectedConversation, user?.wallet?.address]);
+
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const filteredConversations = conversations.filter(conv =>
+  const filteredConversations = conversations.filter((conv) =>
     conv.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -780,9 +890,12 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
       <div className="flex h-[calc(100vh-120px)] bg-[#2b2b2b] text-white items-center justify-center">
         <div className="text-center">
           <MessageCircle className="w-16 h-16 mx-auto mb-4 text-[#A259FF]" />
-          <h2 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h2>
-          <p className="text-white/60 mb-6">
-            Connect your wallet to start messaging with other users on the XMTP network.
+          <h2 className="mb-2 text-2xl font-bold text-white">
+            Connect Your Wallet
+          </h2>
+          <p className="mb-6 text-white/60">
+            Connect your wallet to start messaging with other users on the XMTP
+            network.
           </p>
         </div>
       </div>
@@ -795,12 +908,13 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
       <div className="flex h-[calc(100vh-120px)] bg-[#2b2b2b] text-white items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#A259FF] mx-auto mb-4"></div>
-          <h2 className="text-xl font-bold text-white mb-2">Setting Up XMTP</h2>
-          <p className="text-white/60 mb-4">
+          <h2 className="mb-2 text-xl font-bold text-white">Setting Up XMTP</h2>
+          <p className="mb-4 text-white/60">
             Please sign the message in your wallet to enable messaging...
           </p>
           <p className="text-sm text-white/40">
-            This creates your XMTP identity and allows you to send/receive messages.
+            This creates your XMTP identity and allows you to send/receive
+            messages.
           </p>
         </div>
       </div>
@@ -811,16 +925,21 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
   if (!isInitialized && !isLoading) {
     return (
       <div className="flex h-[calc(100vh-120px)] bg-[#2b2b2b] text-white items-center justify-center">
-        <div className="text-center max-w-md">
+        <div className="max-w-md text-center">
           <MessageCircle className="w-16 h-16 mx-auto mb-4 text-[#A259FF]" />
-          <h2 className="text-2xl font-bold text-white mb-2">Enable Messaging</h2>
-          <p className="text-white/60 mb-6">
-            To start messaging other users, you need to set up your XMTP identity.
-            This requires a one-time signature to create your messaging account.
+          <h2 className="mb-2 text-2xl font-bold text-white">
+            Enable Messaging
+          </h2>
+          <p className="mb-6 text-white/60">
+            To start messaging other users, you need to set up your XMTP
+            identity. This requires a one-time signature to create your
+            messaging account.
           </p>
           <div className="bg-[#3b3b3b] rounded-lg p-4 mb-6 text-left">
-            <h3 className="text-sm font-semibold text-[#A259FF] mb-2">What happens next:</h3>
-            <ul className="text-sm text-white/80 space-y-1">
+            <h3 className="text-sm font-semibold text-[#A259FF] mb-2">
+              What happens next:
+            </h3>
+            <ul className="space-y-1 text-sm text-white/80">
               <li>• Your wallet will ask you to sign a message</li>
               <li>• This creates your XMTP identity (free)</li>
               <li>• You can then message any Ethereum address</li>
@@ -840,31 +959,34 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
 
   // Show error state
   if (error) {
-    const isInstallationLimitError = error.includes('10/10') || error.includes('Installation limit');
+    const isInstallationLimitError =
+      error.includes("10/10") || error.includes("Installation limit");
 
     return (
       <div className="flex h-[calc(100vh-120px)] bg-[#2b2b2b] text-white items-center justify-center">
-        <div className="text-center max-w-md">
+        <div className="max-w-md text-center">
           <WifiOff className="w-16 h-16 mx-auto mb-4 text-red-500" />
-          <h2 className="text-2xl font-bold text-white mb-2">
-            {isInstallationLimitError ? "Installation Limit Reached" : "Connection Error"}
+          <h2 className="mb-2 text-2xl font-bold text-white">
+            {isInstallationLimitError
+              ? "Installation Limit Reached"
+              : "Connection Error"}
           </h2>
-          <p className="text-white/60 mb-6">
-            {error}
-          </p>
+          <p className="mb-6 text-white/60">{error}</p>
 
           {isInstallationLimitError ? (
             <div className="space-y-3">
               <div className="bg-[#3b3b3b] rounded-lg p-4 mb-4 text-left">
-                <h3 className="text-sm font-semibold text-[#A259FF] mb-2">Quick fixes:</h3>
-                <ul className="text-sm text-white/80 space-y-1">
+                <h3 className="text-sm font-semibold text-[#A259FF] mb-2">
+                  Quick fixes:
+                </h3>
+                <ul className="space-y-1 text-sm text-white/80">
                   <li>• Clear browser data (recommended)</li>
                   <li>• Use incognito/private mode</li>
                   <li>• Try a different browser</li>
                   <li>• Clear local XMTP data</li>
                 </ul>
               </div>
-              <div className="flex gap-3 justify-center">
+              <div className="flex justify-center gap-3">
                 <Button
                   onClick={clearLocalData}
                   className="bg-[#A259FF] hover:bg-[#A259FF]/90 text-white px-6 py-2 rounded-[20px]"
@@ -894,7 +1016,7 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
   }
 
   return (
-    <div className="flex h-[calc(100vh-120px)] bg-[#2b2b2b] text-white overflow-hidden">
+    <div className="flex min-h-screen bg-[#2b2b2b] text-white overflow-hidden">
       {/* Sidebar - Chat List */}
       <div className="w-1/3 lg:w-1/4 border-r border-[#A259FF]/20 flex flex-col">
         {/* Header */}
@@ -909,9 +1031,15 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
                 variant="ghost"
                 disabled={isRefreshing}
                 className="text-white/60 hover:text-[#A259FF] hover:bg-[#A259FF]/20 p-1 h-auto disabled:opacity-50"
-                title={isRefreshing ? "Refreshing conversations..." : "Refresh conversations"}
+                title={
+                  isRefreshing
+                    ? "Refreshing conversations..."
+                    : "Refresh conversations"
+                }
               >
-                <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+                />
               </Button>
             </div>
             <Button
@@ -927,7 +1055,9 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
           <div className="mb-4 space-y-3">
             {/* DM Creation */}
             <div>
-              <label className="text-xs text-white/60 mb-1 block">Start DM</label>
+              <label className="block mb-1 text-xs text-white/60">
+                Start DM
+              </label>
               <div className="flex gap-2">
                 <Input
                   placeholder="Enter wallet address..."
@@ -942,7 +1072,7 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
                   className="bg-[#A259FF] hover:bg-[#A259FF]/90"
                 >
                   {isStartingNewChat ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="w-4 h-4 border-b-2 border-white rounded-full animate-spin"></div>
                   ) : (
                     <MessageCircle className="w-4 h-4" />
                   )}
@@ -952,7 +1082,9 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
 
             {/* Group Creation */}
             <div>
-              <label className="text-xs text-white/60 mb-1 block">Create Group</label>
+              <label className="block mb-1 text-xs text-white/60">
+                Create Group
+              </label>
               <div className="space-y-2">
                 <Input
                   placeholder="Group name (optional)"
@@ -974,7 +1106,7 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
                     className="bg-[#A259FF] hover:bg-[#A259FF]/90"
                   >
                     {isCreatingGroup ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <div className="w-4 h-4 border-b-2 border-white rounded-full animate-spin"></div>
                     ) : (
                       <Users className="w-4 h-4" />
                     )}
@@ -986,7 +1118,7 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
 
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/40" />
+            <Search className="absolute w-4 h-4 transform -translate-y-1/2 left-3 top-1/2 text-white/40" />
             <Input
               placeholder="Search conversations..."
               value={searchQuery}
@@ -1001,7 +1133,7 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
           {filteredConversations.length === 0 ? (
             <div className="p-8 text-center">
               <MessageCircle className="w-12 h-12 mx-auto mb-4 text-white/40" />
-              <p className="text-white/60 text-sm">
+              <p className="text-sm text-white/60">
                 No conversations yet. Start a new chat above!
               </p>
             </div>
@@ -1020,39 +1152,48 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
                     <img
                       src={getConversationAvatarUrl(conv.address, { size: 48 })}
                       alt={`${conv.address} avatar`}
-                      className="w-full h-full rounded-full object-cover"
+                      className="object-cover w-full h-full rounded-full"
                     />
                     <AvatarFallback className="bg-[#A259FF] text-white">
                       {conv.address.slice(2, 4).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div className={cn(
-                    "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[#2b2b2b]",
-                    conv.isOnline ? "bg-green-500" : "bg-gray-500"
-                  )} />
+                  <div
+                    className={cn(
+                      "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[#2b2b2b]",
+                      conv.isOnline ? "bg-green-500" : "bg-gray-500"
+                    )}
+                  />
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-1 flex-1 min-w-0">
-                      {conv.isGroup && <Users className="w-3 h-3 text-[#A259FF] flex-shrink-0" />}
-                      <h3 className="text-sm font-semibold text-white truncate font-mono">
+                    <div className="flex items-center flex-1 min-w-0 gap-1">
+                      {conv.isGroup && (
+                        <Users className="w-3 h-3 text-[#A259FF] flex-shrink-0" />
+                      )}
+                      <h3 className="font-mono text-sm font-semibold text-white truncate">
                         {conv.isGroup
                           ? conv.address
-                          : `${conv.address.slice(0, 6)}...${conv.address.slice(-4)}`
-                        }
+                          : `${conv.address.slice(0, 6)}...${conv.address.slice(
+                              -4
+                            )}`}
                       </h3>
                     </div>
-                    <span className="text-xs text-white/60">{conv.timestamp}</span>
+                    <span className="text-xs text-white/60">
+                      {conv.timestamp}
+                    </span>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <p className="text-sm text-white/80 truncate">
-                        {typeof conv.lastMessage === "string" ? conv.lastMessage : "System message"}
+                    <div className="flex items-center flex-1 min-w-0 gap-2">
+                      <p className="text-sm truncate text-white/80">
+                        {typeof conv.lastMessage === "string"
+                          ? conv.lastMessage
+                          : "System message"}
                       </p>
                       {conv.isGroup && conv.memberCount && (
-                        <span className="text-xs text-white/40 flex-shrink-0">
+                        <span className="flex-shrink-0 text-xs text-white/40">
                           {conv.memberCount} members
                         </span>
                       )}
@@ -1071,7 +1212,7 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-hidden">
         {selectedConversation ? (
           <>
             {/* Chat Header */}
@@ -1081,7 +1222,7 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="md:hidden text-white/60 hover:text-white hover:bg-white/10 mr-2"
+                    className="mr-2 md:hidden text-white/60 hover:text-white hover:bg-white/10"
                   >
                     <ArrowLeft className="w-4 h-4" />
                   </Button>
@@ -1089,26 +1230,35 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
                   <div className="relative mr-3">
                     <Avatar className="w-10 h-10">
                       <img
-                        src={getConversationAvatarUrl(selectedConversation.address, { size: 40 })}
+                        src={getConversationAvatarUrl(
+                          selectedConversation.address,
+                          { size: 40 }
+                        )}
                         alt={`${selectedConversation.address} avatar`}
-                        className="w-full h-full rounded-full object-cover"
+                        className="object-cover w-full h-full rounded-full"
                       />
                       <AvatarFallback className="bg-[#A259FF] text-white">
                         {selectedConversation.address.slice(2, 4).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <div className={cn(
-                      "absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#2b2b2b]",
-                      selectedConversation.isOnline ? "bg-green-500" : "bg-gray-500"
-                    )} />
+                    <div
+                      className={cn(
+                        "absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#2b2b2b]",
+                        selectedConversation.isOnline
+                          ? "bg-green-500"
+                          : "bg-gray-500"
+                      )}
+                    />
                   </div>
 
                   <div>
-                    <h2 className="text-lg font-semibold text-white font-mono">
-                      {selectedConversation.address.slice(0, 6)}...{selectedConversation.address.slice(-4)}
+                    <h2 className="font-mono text-lg font-semibold text-white">
+                      {selectedConversation.address.slice(0, 6)}...
+                      {selectedConversation.address.slice(-4)}
                     </h2>
                     <p className="text-sm text-white/60">
-                      XMTP • {selectedConversation.isOnline ? "Online" : "Offline"}
+                      XMTP •{" "}
+                      {selectedConversation.isOnline ? "Online" : "Offline"}
                     </p>
                   </div>
                 </div>
@@ -1126,7 +1276,7 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
+            <div className="flex-1 min-h-0 p-4 space-y-4 overflow-y-auto">
               {isLoadingMessages ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#A259FF]"></div>
@@ -1158,10 +1308,14 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
                       )}
                     >
                       <p className="text-sm break-words">
-                        {typeof message.text === "string" ? message.text : "Invalid message"}
+                        {typeof message.text === "string"
+                          ? message.text
+                          : "Invalid message"}
                       </p>
                       <div className="flex items-center justify-end mt-1 space-x-1">
-                        <span className="text-xs opacity-70">{message.timestamp}</span>
+                        <span className="text-xs opacity-70">
+                          {message.timestamp}
+                        </span>
                         {message.sender === "me" && (
                           <div className="ml-1">
                             {getMessageStatusIcon(message.status)}
@@ -1181,12 +1335,12 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="text-white/60 hover:text-white hover:bg-white/10 rounded-full p-2"
+                  className="p-2 rounded-full text-white/60 hover:text-white hover:bg-white/10"
                 >
                   <Paperclip className="w-5 h-5" />
                 </Button>
 
-                <div className="flex-1 relative">
+                <div className="relative flex-1">
                   <Input
                     placeholder="Type a message..."
                     value={messageInput}
@@ -1197,7 +1351,7 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white hover:bg-white/10 rounded-full p-1"
+                    className="absolute p-1 transform -translate-y-1/2 rounded-full right-2 top-1/2 text-white/60 hover:text-white hover:bg-white/10"
                   >
                     <Smile className="w-5 h-5" />
                   </Button>
@@ -1215,10 +1369,10 @@ export function ChatInterface({ contactAddress, domainName }: ChatInterfaceProps
           </>
         ) : (
           // No conversation selected
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex items-center justify-center flex-1">
             <div className="text-center">
               <MessageCircle className="w-16 h-16 mx-auto mb-4 text-white/40" />
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <h3 className="mb-2 text-xl font-semibold text-white">
                 Select a conversation
               </h3>
               <p className="text-white/60">

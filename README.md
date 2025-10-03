@@ -1,8 +1,8 @@
-# 🌟 **Zephyra** - The Future of Domain Trading
+# 🌟 ** Zephyra** - The Future of Domain Trading
 
 <div align="center">
 
-![Zephyra Logo](public/noma_logo.svg)
+![ Zephyra Logo](public/noma_logo.svg)
 
 **The Premier Web3 Domain Marketplace**
 
@@ -21,9 +21,9 @@
 
 ## 🎯 **The Vision**
 
-**Zephyra** is the first marketplace built specifically for Web3-native domain trading — a secure, decentralized platform where users discover, trade, and negotiate premium blockchain domains across multiple chains.
+** Zephyra** is the first marketplace built specifically for Web3-native domain trading — a secure, decentralized platform where users discover, trade, and negotiate premium blockchain domains across multiple chains.
 
-By bridging Web2 and Web3, Zephyra will tokenize current and future domain names as real-world assets on the DNS, unlocking a new era of liquidity and financial opportunities for billions of users worldwide.
+By bridging Web2 and Web3,  Zephyra will tokenize current and future domain names as real-world assets on the DNS, unlocking a new era of liquidity and financial opportunities for billions of users worldwide.
 
 ---
 
@@ -41,7 +41,7 @@ The current domain trading ecosystem is **fragmented and inefficient**:
 
 ## ✨ **The Solution**
 
-**Zephyra unifies everything** into one seamless platform:
+** Zephyra unifies everything** into one seamless platform:
 
 ### 🔗 **Unified Discovery**
 - **Real-time Search** with advanced filtering and autocomplete
@@ -110,8 +110,8 @@ The current domain trading ecosystem is **fragmented and inefficient**:
 
 ```bash
 # Clone the repository
-git clone https://github.com/zephyra-domains/zephyra-marketplace.git
-cd zephyra-marketplace
+git clone https://github.com/ Zephyra-domains/ Zephyra-marketplace.git
+cd  Zephyra-marketplace
 
 # Install dependencies
 npm install
@@ -134,7 +134,7 @@ NEXT_PUBLIC_PRIVY_APP_ID=your_privy_app_id
 
 # D3/DOMA Configuration  
 NEXT_PUBLIC_DOMA_RPC_URL=https://rpc-testnet.doma.xyz
-NEXT_PUBLIC_APP_NAME=zephyra-marketplace
+NEXT_PUBLIC_APP_NAME= Zephyra-marketplace
 
 # Optional: Analytics & Monitoring
 NEXT_PUBLIC_GA_ID=your_google_analytics_id
@@ -321,7 +321,7 @@ We welcome contributions from the community! Here's how you can help:
 ### **Get Involved**
 - 💬 **Discord** - Join our community discussions
 - 🐦 **Twitter** - Follow us for updates and news
-- 📧 **Email** - Contact us at support@zephyra.domains
+- 📧 **Email** - Contact us at support@ Zephyra.domains
 - 📖 **Documentation** - Comprehensive guides and API docs
 
 ### **Support Channels**
@@ -352,13 +352,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <div align="center">
 
-**Zephyra Team**
+** Zephyra Team**
 
-[🌐 Website](https://zephyra.app) • [📧 Email](mailto:hello@zephyra.domains) • [🐦 Twitter](https://twitter.com/zephyra_domains) • [💼 LinkedIn](https://linkedin.com/company/zephyra-domains) • [🐙 GitHub](https://github.com/zephyra-domains)
+[🌐 Website](https:// Zephyra.app) • [📧 Email](mailto:hello@ Zephyra.domains) • [🐦 Twitter](https://twitter.com/ Zephyra_domains) • [💼 LinkedIn](https://linkedin.com/company/ Zephyra-domains) • [🐙 GitHub](https://github.com/ Zephyra-domains)
 
 ---
 
-**Built with ❤️ by the Zephyra Team**
+**Built with ❤️ by the  Zephyra Team**
 
 *Unleashing the Future of Domains*
 
@@ -370,8 +370,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### ⭐ **Star this repository if you find it helpful!**
 
-[![GitHub stars](https://img.shields.io/github/stars/zephyra-domains/zephyra-marketplace?style=social)](https://github.com/zephyra-domains/zephyra-marketplace)
-[![GitHub forks](https://img.shields.io/github/forks/zephyra-domains/zephyra-marketplace?style=social)](https://github.com/zephyra-domains/zephyra-marketplace)
-[![GitHub watchers](https://img.shields.io/github/watchers/zephyra-domains/zephyra-marketplace?style=social)](https://github.com/zephyra-domains/zephyra-marketplace)
+[![GitHub stars](https://img.shields.io/github/stars/ Zephyra-domains/ Zephyra-marketplace?style=social)](https://github.com/ Zephyra-domains/ Zephyra-marketplace)
+[![GitHub forks](https://img.shields.io/github/forks/ Zephyra-domains/ Zephyra-marketplace?style=social)](https://github.com/ Zephyra-domains/ Zephyra-marketplace)
+[![GitHub watchers](https://img.shields.io/github/watchers/ Zephyra-domains/ Zephyra-marketplace?style=social)](https://github.com/ Zephyra-domains/ Zephyra-marketplace)
 
 </div>

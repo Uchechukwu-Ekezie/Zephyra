@@ -8,7 +8,10 @@ import { useOrderbook } from "@/hooks/use-orderbook";
 import { parseUnits } from "ethers";
 import { toast } from "sonner";
 import type { NameModel } from "@/types/doma";
-import type { CurrencyToken, OrderbookType } from "@doma-protocol/orderbook-sdk";
+import type {
+  CurrencyToken,
+  OrderbookType,
+} from "@doma-protocol/orderbook-sdk";
 
 interface OfferPopupProps {
   isOpen: boolean;
@@ -18,10 +21,15 @@ interface OfferPopupProps {
 
 export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
   const [offerAmount, setOfferAmount] = useState("");
-  const [offerType, setOfferType] = useState<"instant" | "make-offer">("instant");
+  const [offerType, setOfferType] = useState<"instant" | "make-offer">(
+    "instant"
+  );
   const [expirationDays, setExpirationDays] = useState("7");
-  const [selectedCurrency, setSelectedCurrency] = useState<CurrencyToken | null>(null);
-  const [supportedCurrencies, setSupportedCurrencies] = useState<CurrencyToken[]>([]);
+  const [selectedCurrency, setSelectedCurrency] =
+    useState<CurrencyToken | null>(null);
+  const [supportedCurrencies, setSupportedCurrencies] = useState<
+    CurrencyToken[]
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
   const [orderbootFee, setOrderbootFee] = useState(0.025);
   const [marketplaceFees, setMarketplaceFees] = useState<any[]>([]);
@@ -32,21 +40,28 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
     getSupportedCurrencies,
     getOrderbookFee,
     isWalletConnected,
-    walletAddress
+    walletAddress,
   } = useOrderbook();
 
   // Get the primary token and listing
-  const primaryToken = domain.tokens && domain.tokens.length > 0 ? domain.tokens[0] : null;
+  const primaryToken =
+    domain.tokens && domain.tokens.length > 0 ? domain.tokens[0] : null;
   const primaryListing = primaryToken?.listings?.[0];
 
   // Load supported currencies and fees on component mount
   useEffect(() => {
-    console.log("useEffect triggered - isOpen:", isOpen, "primaryToken:", primaryToken);
+    console.log(
+      "useEffect triggered - isOpen:",
+      isOpen,
+      "primaryToken:",
+      primaryToken
+    );
     if (isOpen && primaryToken) {
       const loadData = async () => {
         try {
           // Get network ID from token
-          const networkId = primaryToken.chain?.networkId || primaryToken.networkId;
+          const networkId =
+            primaryToken.chain?.networkId || primaryToken.networkId;
           console.log("Network ID:", networkId);
 
           if (!networkId) {
@@ -61,23 +76,27 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
             const currencyResponse = await getSupportedCurrencies({
               chainId: networkId,
               orderbook: primaryListing.orderbook,
-              contractAddress: primaryToken.tokenAddress
+              contractAddress: primaryToken.tokenAddress,
             });
 
             console.log("Loaded currencies response:", currencyResponse);
 
             // Extract currencies from response - handle both formats
-            const currencies = currencyResponse.currencies || currencyResponse.data || [];
+            const currencies =
+              currencyResponse.currencies || currencyResponse.data || [];
             console.log("Extracted currencies:", currencies);
 
             // Ensure currencies is an array and filter ones with contract addresses
-            const validCurrencies = Array.isArray(currencies) ?
-              currencies.filter(c => c && c.contractAddress) : [];
+            const validCurrencies = Array.isArray(currencies)
+              ? currencies.filter((c) => c && c.contractAddress)
+              : [];
             console.log("Valid currencies:", validCurrencies);
             setSupportedCurrencies(validCurrencies);
 
             // Set default currency (USDC if available, otherwise first one)
-            const defaultCurrency = validCurrencies.find(c => c.symbol === "USDC") || validCurrencies[0];
+            const defaultCurrency =
+              validCurrencies.find((c) => c.symbol === "USDC") ||
+              validCurrencies[0];
             console.log("Default currency selected:", defaultCurrency);
             setSelectedCurrency(defaultCurrency);
 
@@ -86,45 +105,57 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
               const feeResponse = await getOrderbookFee({
                 chainId: networkId,
                 contractAddress: primaryToken.tokenAddress,
-                orderbook: primaryListing.orderbook
+                orderbook: primaryListing.orderbook,
               });
 
               console.log("Fee response:", feeResponse);
               // Extract fees from response - handle both formats
-              const fees = feeResponse.marketplaceFees || feeResponse.data || [];
+              const fees =
+                feeResponse.marketplaceFees || feeResponse.data || [];
               console.log("Extracted fees:", fees);
 
               // Store the actual fee objects for use in the offer
               setMarketplaceFees(fees);
 
               // Also store the percentage for display
-              const feePercentage = fees.length > 0 ? fees[0].basisPoints / 10000 : 0.025;
+              const feePercentage =
+                fees.length > 0 ? fees[0].basisPoints / 10000 : 0.025;
               setOrderbootFee(feePercentage);
             } catch (feeError) {
-              console.warn("Failed to load orderbook fee, using empty fees:", feeError);
+              console.warn(
+                "Failed to load orderbook fee, using empty fees:",
+                feeError
+              );
               setOrderbootFee(0.025); // Default 2.5% fee for display
               setMarketplaceFees([]); // Empty fees array like domain_space
             }
           } else {
-            console.log("No primary listing found - loading fallback currencies and trying to get fees anyway");
+            console.log(
+              "No primary listing found - loading fallback currencies and trying to get fees anyway"
+            );
 
             // Even without listing, try to get fees for the token
             try {
               const feeResponse = await getOrderbookFee({
                 chainId: networkId,
                 contractAddress: primaryToken.tokenAddress,
-                orderbook: "DOMA" // Default orderbook when no listing
+                orderbook: "DOMA", // Default orderbook when no listing
               });
 
               console.log("Fee response (no listing):", feeResponse);
-              const fees = feeResponse.marketplaceFees || feeResponse.data || [];
+              const fees =
+                feeResponse.marketplaceFees || feeResponse.data || [];
               console.log("Extracted fees (no listing):", fees);
 
               setMarketplaceFees(fees);
-              const feePercentage = fees.length > 0 ? fees[0].basisPoints / 10000 : 0.025;
+              const feePercentage =
+                fees.length > 0 ? fees[0].basisPoints / 10000 : 0.025;
               setOrderbootFee(feePercentage);
             } catch (feeError) {
-              console.warn("Failed to load fees without listing, using empty array:", feeError);
+              console.warn(
+                "Failed to load fees without listing, using empty array:",
+                feeError
+              );
               setMarketplaceFees([]); // Empty fees like domain_space does
               setOrderbootFee(0.025);
             }
@@ -176,7 +207,13 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
 
       loadData();
     }
-  }, [isOpen, primaryToken, primaryListing, getSupportedCurrencies, getOrderbookFee]);
+  }, [
+    isOpen,
+    primaryToken,
+    primaryListing,
+    getSupportedCurrencies,
+    getOrderbookFee,
+  ]);
 
   const formatPrice = (price: string, decimals: number = 18): string => {
     try {
@@ -237,7 +274,8 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
         console.log("🚀 Starting instant buy process...");
 
         // Get network ID from token - handle both string and number formats
-        const networkId = primaryToken.chain?.networkId || primaryToken.networkId;
+        const networkId =
+          primaryToken.chain?.networkId || primaryToken.networkId;
         console.log("networkId:", networkId);
 
         if (!networkId) {
@@ -273,7 +311,8 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
         console.log("🚀 Starting make offer process...");
 
         // Get network ID from token - handle both string and number formats
-        const networkId = primaryToken.chain?.networkId || primaryToken.networkId;
+        const networkId =
+          primaryToken.chain?.networkId || primaryToken.networkId;
         console.log("networkId:", networkId);
 
         if (!networkId) {
@@ -287,11 +326,15 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
         // Use the actual marketplace fees from the API (like domain_space does)
         console.log("🏦 Using marketplace fees from API:", marketplaceFees);
         console.log("🏦 Number of fees:", marketplaceFees.length);
-        console.log("🏦 Fee structure:", JSON.stringify(marketplaceFees, null, 2));
+        console.log(
+          "🏦 Fee structure:",
+          JSON.stringify(marketplaceFees, null, 2)
+        );
 
         // Validate marketplace fees structure (like domain_space validation)
-        const validatedMarketplaceFees = marketplaceFees.filter(fee =>
-          fee && typeof fee.basisPoints === 'number' && fee.basisPoints > 0
+        const validatedMarketplaceFees = marketplaceFees.filter(
+          (fee) =>
+            fee && typeof fee.basisPoints === "number" && fee.basisPoints > 0
         );
         console.log("🔍 Validated marketplace fees:", validatedMarketplaceFees);
 
@@ -302,7 +345,9 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
           console.log("🏦 Using marketplace fees from API");
           finalMarketplaceFees = validatedMarketplaceFees;
         } else {
-          console.log("🏦 Using REQUIRED marketplace fee recipients (API returned empty)");
+          console.log(
+            "🏦 Using REQUIRED marketplace fee recipients (API returned empty)"
+          );
           // These are the required fee recipients from the error message
           finalMarketplaceFees = [
             {
@@ -312,22 +357,27 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
             {
               recipient: "0x5318579e61A7a6cD71A8fd163C1A6794b2695E2b",
               basisPoints: 250, // 2.5% - protocol fee
-            }
+            },
           ];
         }
 
         console.log("🔧 Final marketplace fees to use:", finalMarketplaceFees);
 
         const params = {
-          items: [{
-            contract: primaryToken.tokenAddress,
-            tokenId: primaryToken.tokenId,
-            price: parseUnits(offerAmount, selectedCurrency!.decimals).toString(),
-            currencyContractAddress: selectedCurrency!.contractAddress,
-            duration: durationMs,
-          }],
+          items: [
+            {
+              contract: primaryToken.tokenAddress,
+              tokenId: primaryToken.tokenId,
+              price: parseUnits(
+                offerAmount,
+                selectedCurrency!.decimals
+              ).toString(),
+              currencyContractAddress: selectedCurrency!.contractAddress,
+              duration: durationMs,
+            },
+          ],
           orderbook: (primaryListing?.orderbook || "DOMA") as OrderbookType,
-          source: "zephyra-marketplace",
+          source: " Zephyra-marketplace",
           marketplaceFees: finalMarketplaceFees, // Use final fees (API or required)
         };
 
@@ -335,7 +385,10 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
         console.log("💰 Price calculation:", {
           offerAmount,
           decimals: selectedCurrency!.decimals,
-          parsedPrice: parseUnits(offerAmount, selectedCurrency!.decimals).toString()
+          parsedPrice: parseUnits(
+            offerAmount,
+            selectedCurrency!.decimals
+          ).toString(),
         });
 
         // Validate the offer item structure
@@ -347,7 +400,7 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
           priceAsNumber: BigInt(offerItem.price).toString(),
           currencyContractAddress: offerItem.currencyContractAddress,
           duration: offerItem.duration,
-          isValidPrice: BigInt(offerItem.price) > 0n
+          isValidPrice: BigInt(offerItem.price) > 0n,
         });
 
         // Additional validation
@@ -369,22 +422,33 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
           symbol: selectedCurrency!.symbol,
           contractAddress: selectedCurrency!.contractAddress,
           decimals: selectedCurrency!.decimals,
-          hasContractAddress: !!selectedCurrency!.contractAddress
+          hasContractAddress: !!selectedCurrency!.contractAddress,
         });
-        console.log("🔗 Has WETH offer:", selectedCurrency!.symbol?.toLowerCase() === "weth");
-        console.log("💱 Supported currencies count:", supportedCurrencies.length);
+        console.log(
+          "🔗 Has WETH offer:",
+          selectedCurrency!.symbol?.toLowerCase() === "weth"
+        );
+        console.log(
+          "💱 Supported currencies count:",
+          supportedCurrencies.length
+        );
 
         const result = await createOffer({
           params,
           networkId,
           onProgress: (progress) => {
             progress.forEach((step) => {
-              console.log("📈 Progress:", step.description, "Status:", step.status);
+              console.log(
+                "📈 Progress:",
+                step.description,
+                "Status:",
+                step.status
+              );
               toast.info(`${step.description} - ${step.status}`);
             });
           },
           hasWethOffer: selectedCurrency!.symbol?.toLowerCase() === "weth",
-          currencies: supportedCurrencies
+          currencies: supportedCurrencies,
         });
 
         console.log("✅ Offer created successfully!", result);
@@ -400,7 +464,7 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
         code: error.code,
         cause: error.cause,
         stack: error.stack,
-        full: error
+        full: error,
       });
 
       // Extract more meaningful error messages
@@ -420,7 +484,8 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
       } else if (error.message?.includes("user rejected")) {
         errorMessage = "Transaction was cancelled by user";
       } else if (error.message?.includes("network")) {
-        errorMessage = "Network error - please check your connection and try again";
+        errorMessage =
+          "Network error - please check your connection and try again";
       } else if (error.message?.includes("API")) {
         errorMessage = "API error - please try again later";
       }
@@ -447,7 +512,8 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
         {/* Header */}
         <div className="mb-6">
           <h2 className="text-xl font-bold text-white">
-            {offerType === "instant" ? "Buy Instantly" : "Make Offer"} - {domain.name}
+            {offerType === "instant" ? "Buy Instantly" : "Make Offer"} -{" "}
+            {domain.name}
           </h2>
         </div>
 
@@ -495,12 +561,24 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
             <div className="bg-[#3b3b3b] p-4 rounded-lg border border-[#A259FF]/20">
               <p className="text-sm text-white/60 mb-2">Current Price</p>
               <p className="text-2xl font-bold text-[#A259FF]">
-                {formatPrice(primaryListing.price, primaryListing.currency.decimals)}{" "}
+                {formatPrice(
+                  primaryListing.price,
+                  primaryListing.currency.decimals
+                )}{" "}
                 {primaryListing.currency.symbol}
               </p>
               {primaryListing.currency.usdExchangeRate && (
                 <p className="text-sm text-white/60 mt-1">
-                  ~${(parseFloat(formatPrice(primaryListing.price, primaryListing.currency.decimals)) * primaryListing.currency.usdExchangeRate).toFixed(2)} USD
+                  ~$
+                  {(
+                    parseFloat(
+                      formatPrice(
+                        primaryListing.price,
+                        primaryListing.currency.decimals
+                      )
+                    ) * primaryListing.currency.usdExchangeRate
+                  ).toFixed(2)}{" "}
+                  USD
                 </p>
               )}
             </div>
@@ -509,28 +587,42 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
           {/* Currency Selection */}
           {offerType === "make-offer" && (
             <div className="space-y-2">
-              <label htmlFor="currency" className="text-sm font-medium leading-none text-white">Currency</label>
+              <label
+                htmlFor="currency"
+                className="text-sm font-medium leading-none text-white"
+              >
+                Currency
+              </label>
               <select
                 id="currency"
                 value={selectedCurrency?.symbol || ""}
                 onChange={(e) => {
-                  const currency = supportedCurrencies.find(c => c.symbol === e.target.value);
+                  const currency = supportedCurrencies.find(
+                    (c) => c.symbol === e.target.value
+                  );
                   setSelectedCurrency(currency || null);
                 }}
                 className="flex h-10 w-full rounded-md border border-[#A259FF]/20 bg-[#3b3b3b] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#A259FF]"
               >
-                {(!Array.isArray(supportedCurrencies) || supportedCurrencies.length === 0) && (
+                {(!Array.isArray(supportedCurrencies) ||
+                  supportedCurrencies.length === 0) && (
                   <option value="">Loading currencies...</option>
                 )}
-                {Array.isArray(supportedCurrencies) && supportedCurrencies.map((currency) => (
-                  <option key={currency.symbol} value={currency.symbol}>
-                    {currency.symbol} - {currency.name}
-                  </option>
-                ))}
+                {Array.isArray(supportedCurrencies) &&
+                  supportedCurrencies.map((currency) => (
+                    <option key={currency.symbol} value={currency.symbol}>
+                      {currency.symbol} - {currency.name}
+                    </option>
+                  ))}
               </select>
               {/* Debug info */}
               <p className="text-xs text-white/60">
-                Debug: {Array.isArray(supportedCurrencies) ? supportedCurrencies.length : 0} currencies loaded, selected: {selectedCurrency?.symbol || "none"}
+                Debug:{" "}
+                {Array.isArray(supportedCurrencies)
+                  ? supportedCurrencies.length
+                  : 0}{" "}
+                currencies loaded, selected:{" "}
+                {selectedCurrency?.symbol || "none"}
               </p>
             </div>
           )}
@@ -538,7 +630,12 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
           {/* Expiration */}
           {offerType === "make-offer" && (
             <div className="space-y-2">
-              <label htmlFor="expiration" className="text-sm font-medium leading-none text-white">Duration</label>
+              <label
+                htmlFor="expiration"
+                className="text-sm font-medium leading-none text-white"
+              >
+                Duration
+              </label>
               <select
                 id="expiration"
                 value={expirationDays}
@@ -555,7 +652,12 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
           {/* Offer Amount */}
           {offerType === "make-offer" && (
             <div className="space-y-2">
-              <label htmlFor="amount" className="text-sm font-medium leading-none text-white">Offer Amount</label>
+              <label
+                htmlFor="amount"
+                className="text-sm font-medium leading-none text-white"
+              >
+                Offer Amount
+              </label>
               <Input
                 id="amount"
                 type="number"
@@ -572,11 +674,15 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
             <div className="bg-[#A259FF]/10 border border-[#A259FF]/30 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Info className="h-4 w-4 text-[#A259FF]" />
-                <p className="text-sm font-medium text-white">Marketplace Fees</p>
+                <p className="text-sm font-medium text-white">
+                  Marketplace Fees
+                </p>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-white/60">Platform Fee</span>
-                <span className="text-white">{(orderbootFee * 100).toFixed(2)}%</span>
+                <span className="text-white">
+                  {(orderbootFee * 100).toFixed(2)}%
+                </span>
               </div>
             </div>
           )}
@@ -588,7 +694,12 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
                 console.log("🔘 Submit button clicked!");
                 handleSubmit();
               }}
-              disabled={isLoading || !isWalletConnected || (offerType === "make-offer" && (!offerAmount || !selectedCurrency))}
+              disabled={
+                isLoading ||
+                !isWalletConnected ||
+                (offerType === "make-offer" &&
+                  (!offerAmount || !selectedCurrency))
+              }
               className="flex-1 bg-[#A259FF] hover:bg-[#A259FF]/90 text-white disabled:opacity-50"
             >
               {isLoading ? (
@@ -596,8 +707,10 @@ export function OfferPopup({ isOpen, onClose, domain }: OfferPopupProps) {
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
                   Processing...
                 </>
+              ) : offerType === "instant" ? (
+                "Buy Now"
               ) : (
-                offerType === "instant" ? "Buy Now" : "Submit Offer"
+                "Submit Offer"
               )}
             </Button>
 
