@@ -24,13 +24,16 @@ export function Footer() {
               <div className="flex items-center justify-center w-10 h-10 rounded-lg">
                 <Image
                   src="/noma_logo.svg"
-                  alt="Zephyra Logo"
+                  alt=" Zephyra Logo"
                   width={40}
                   height={40}
                   className="w-10 h-10"
                 />
               </div>
-              <span className="text-2xl font-bold text-[#A259FF]">Zephyra</span>
+              <span className="text-2xl font-bold text-[#A259FF]">
+                {" "}
+                Zephyra
+              </span>
             </div>
             <p className="leading-relaxed text-white/80">
               The premier Web3 domain marketplace. Discover, buy, and trade
@@ -39,7 +42,7 @@ export function Footer() {
             </p>
             <div className="flex gap-4">
               <a
-                href="https://twitter.com/zephyra_domains"
+                href="https://twitter.com/ Zephyra_domains"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-[#3b3b3b] rounded-lg flex items-center justify-center hover:bg-[#A259FF] transition-colors"
@@ -47,7 +50,7 @@ export function Footer() {
                 <Twitter className="w-5 h-5 text-white/80 hover:text-white" />
               </a>
               <a
-                href="https://linkedin.com/company/zephyra-domains"
+                href="https://linkedin.com/company/ Zephyra-domains"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-[#3b3b3b] rounded-lg flex items-center justify-center hover:bg-[#A259FF] transition-colors"
@@ -55,7 +58,7 @@ export function Footer() {
                 <Linkedin className="w-5 h-5 text-white/80 hover:text-white" />
               </a>
               <a
-                href="https://github.com/zephyra-domains"
+                href="https://github.com/ Zephyra-domains"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 bg-[#3b3b3b] rounded-lg flex items-center justify-center hover:bg-[#A259FF] transition-colors"
@@ -123,7 +126,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="mailto:support@zephyra.domains"
+                  href="mailto:support@ Zephyra.domains"
                   className="text-white/80 hover:text-[#A259FF] transition-colors flex items-center gap-2"
                 >
                   <Mail className="w-4 h-4" />
@@ -132,7 +135,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="https://docs.zephyra.domains"
+                  href="https://docs. Zephyra.domains"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-white/80 hover:text-[#A259FF] transition-colors flex items-center gap-2"
@@ -143,7 +146,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="https://status.zephyra.domains"
+                  href="https://status. Zephyra.domains"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-white/80 hover:text-[#A259FF] transition-colors flex items-center gap-2"

@@ -97,19 +97,17 @@ export function XMTPProvider({ children }: XMTPProviderProps) {
       if (canMessage.get(user.wallet.address.toLowerCase())) {
         console.log('✅ Found existing XMTP identity, building client (reuses existing installation)...');
         // User has existing identity - use Client.build() to reuse existing installation
-        // This is the KEY difference from your old code - we build instead of create!
         xmtpClient = await Client.build(identifier, {
           env: 'dev',
+          codecs: [], // Add codecs if needed: [new ReactionCodec(), new AttachmentCodec()]
         });
-        console.log("✅ Successfully built existing XMTP client");
       } else {
-        console.log('❌ No existing identity found, creating new one (requires signature)...');
-        // Only create new identity if user is not registered
-        // This should only happen for brand new users
+        console.log('🆕 No existing XMTP identity found, creating new client...');
+        // User not registered - create new client  
         xmtpClient = await Client.create(signer, {
           env: 'dev',
+          codecs: [], // Add codecs if needed: [new ReactionCodec(), new AttachmentCodec()]
         });
-        console.log("✅ Successfully created new XMTP client");
       }
 
       console.log('XMTP client ready!');
@@ -268,7 +266,7 @@ export function XMTPProvider({ children }: XMTPProviderProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.wallet?.address, signMessage, toast]);
+  }, [user, signMessage, toast]);
 
   // Auto-initialize when wallet is connected
   useEffect(() => {

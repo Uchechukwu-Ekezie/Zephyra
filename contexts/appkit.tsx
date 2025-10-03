@@ -6,22 +6,22 @@ import { ReactNode } from "react";
 
 // Create a metadata object
 const metadata = {
-  name: "Zephyra Marketplace",
-  description: "Zephyra Domain Marketplace - Testnet Mode",
-  url: "https://zephyra-marketplace.doma.xyz",
-  icons: ["https://zephyra-marketplace.doma.xyz/noma_logo.svg"],
+  name: " Zephyra Marketplace",
+  description: " Zephyra Domain Marketplace - Testnet Mode",
+  url: "https:// Zephyra-marketplace.doma.xyz",
+  icons: ["https:// Zephyra-marketplace.doma.xyz/noma_logo.svg"],
 };
 
 // Custom Doma Testnet configuration using AppKit's defineChain
 const domaTestnet = defineChain({
   id: 97476,
-  caipNetworkId: 'eip155:97476',
-  chainNamespace: 'eip155',
-  name: 'Doma Testnet',
+  caipNetworkId: "eip155:97476",
+  chainNamespace: "eip155",
+  name: "Doma Testnet",
   nativeCurrency: {
     decimals: 18,
-    name: 'ETH',
-    symbol: 'ETH',
+    name: "ETH",
+    symbol: "ETH",
   },
   rpcUrls: {
     default: {
@@ -32,14 +32,20 @@ const domaTestnet = defineChain({
     },
   },
   blockExplorers: {
-    default: { name: "Doma Explorer", url: "https://explorer-testnet.doma.xyz" },
+    default: {
+      name: "Doma Explorer",
+      url: "https://explorer-testnet.doma.xyz",
+    },
   },
   testnet: true,
 });
 
 // Log network info for debugging
 console.log(`🌍 AppKit Environment: Testnet`);
-console.log(`📡 Supported Networks:`, networks.map(n => n.name));
+console.log(
+  `📡 Supported Networks:`,
+  networks.map((n) => n.name)
+);
 
 // Create the AppKit instance using the wagmiAdapter
 createAppKit({

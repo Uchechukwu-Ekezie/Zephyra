@@ -14,12 +14,12 @@ export function Navigation() {
               href="/"
               className="text-xl font-bold text-[#A259FF] flex items-center gap-2"
             >
-              <Image
+              {/* <Image
                 src="/noma_logo.svg"
-                alt="Zephyra Logo"
+                alt=" Zephyra Logo"
                 width={50}
                 height={40}
-              />
+              /> */}
               Zephyra
             </Link>
 

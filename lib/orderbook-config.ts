@@ -9,10 +9,12 @@ export const orderbookConfig: DomaOrderbookSDKConfig = {
   apiClientOptions: {
     baseUrl: process.env.NEXT_PUBLIC_DOMA_URL || "https://api-testnet.doma.xyz",
     defaultHeaders: {
-      "Api-Key": process.env.NEXT_PUBLIC_DOMA_API_KEY || "v1.0da7d21e76552ca517ef3794e2d80b18b8886a5190b633365741b2b86e6926a9",
+      "Api-Key":
+        process.env.NEXT_PUBLIC_DOMA_API_KEY ||
+        "v1.0da7d21e76552ca517ef3794e2d80b18b8886a5190b633365741b2b86e6926a9",
     },
   },
-  source: process.env.NEXT_PUBLIC_APP_NAME || "zephyra-marketplace",
+  source: process.env.NEXT_PUBLIC_APP_NAME || " Zephyra-marketplace",
   chains: [
     {
       id: 1,
